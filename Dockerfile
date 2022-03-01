@@ -4,23 +4,20 @@ FROM golang:1.17.5-alpine3.15
 
 # Install and download deps.
 RUN apk add --no-cache git curl python2 build-base openssl-dev openssl \
-    && git clone https://github.com/Arlen-LT/apprtc.git
-
+    && git clone https://github.com/Arlen-LT/apprtc.git \
 # AppRTC GAE setup
 # Required to run GAE dev_appserver.py.
-RUN curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-367.0.0-linux-x86_64.tar.gz --output gcloud.tar.gz \
+    && curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-367.0.0-linux-x86_64.tar.gz --output gcloud.tar.gz \
     && tar -xf gcloud.tar.gz \
     && google-cloud-sdk/bin/gcloud components install app-engine-python-extras app-engine-python cloud-datastore-emulator --quiet \
-    && rm -f gcloud.tar.gz
-
+    && rm -f gcloud.tar.gz \
 # Mimick build step by manually copying everything into the appropriate folder and run build script.
-RUN python apprtc/build/build_app_engine_package.py apprtc/src/ apprtc/out/ \
+    && python apprtc/build/build_app_engine_package.py apprtc/src/ apprtc/out/ \
     && curl https://webrtc.github.io/adapter/adapter-latest.js --output apprtc/src/web_app/js/adapter.js \
-    && cp apprtc/src/web_app/js/*.js apprtc/out/js/
-
+    && cp apprtc/src/web_app/js/*.js apprtc/out/js/ \
 # Collider setup
 # Go environment setup.
-RUN export GOPATH=$HOME/goWorkspace/ \
+    && export GOPATH=$HOME/goWorkspace/ \
     && go env -w GO111MODULE=off
 
 RUN ln -s `pwd`/apprtc/src/collider/collidermain $GOPATH/src \
@@ -28,8 +25,7 @@ RUN ln -s `pwd`/apprtc/src/collider/collidermain $GOPATH/src \
     && ln -s `pwd`/apprtc/src/collider/collider $GOPATH/src \
     && cd $GOPATH/src \
     && go get collidermain \
-    && go install collidermain \
-    && cd /go
+    && go install collidermain
 
 # Start the bash wrapper that keeps both collider and the AppRTC GAE app running. 
 CMD google-cloud-sdk/bin/dev_appserver.py --host lytrix.net apprtc/out/app_engine \
