@@ -4,8 +4,7 @@ FROM golang:1.17.5-alpine3.15
 
 # Install and download deps.
 RUN apk add --no-cache git curl python2 build-base openssl-dev openssl 
-RUN git clone https://github.com/webrtc/apprtc.git
-
+RUN git clone https://github.com/Arlen-LT/apprtc.git
 # AppRTC GAE setup
 
 # Required to run GAE dev_appserver.py.
@@ -20,8 +19,11 @@ RUN python apprtc/build/build_app_engine_package.py apprtc/src/ apprtc/out/ \
     && cp apprtc/src/web_app/js/*.js apprtc/out/js/
 
 # Wrap AppRTC GAE app in a bash script due to needing to run two apps within one container.
+# RUN echo -e "#!/bin/sh\n" > /go/start.sh \
+#     && echo -e "`pwd`/google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 `pwd`/apprtc/out/app.yaml --enable_host_checking=false &\n" >> /go/start.sh
+    
 RUN echo -e "#!/bin/sh\n" > /go/start.sh \
-    && echo -e "`pwd`/google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 `pwd`/apprtc/out/app.yaml &\n" >> /go/start.sh
+    && echo -e "`pwd`/google-cloud-sdk/bin/dev_appserver.py --host lytrix.net `pwd`/apprtc/out/app_engine --ssl_certificate_path /cert/cert.pem --ssl_certificate_key_path /cert/key.pem &\n" >> /go/start.sh
 
 # Collider setup
 # Go environment setup.
@@ -45,15 +47,6 @@ RUN curl  https://www.stunnel.org/archive/5.x/stunnel-${STUNNEL_VERSION}.tar.gz 
     && tar -xf /usr/src/stunnel.tar.gz
 WORKDIR /usr/src/stunnel-${STUNNEL_VERSION}
 RUN ./configure --prefix=/usr && make && make install
-
-RUN mkdir /cert
-RUN openssl req -x509 -out /cert/cert.crt -keyout /cert/key.pem \
-  -newkey rsa:2048 -nodes -sha256 \
-  -subj '/CN=localhost' -extensions EXT -config <( \
-   printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth") \
-  && cat /cert/key.pem > /cert/cert.pem \
-  && cat /cert/cert.crt >> /cert/cert.pem \
-  && chmod 600 /cert/cert.pem /cert/key.pem /cert/cert.crt
 
 RUN echo -e "foreground=yes\n" > /usr/etc/stunnel/stunnel.conf \
     && echo -e "[AppRTC GAE]\n" >> /usr/etc/stunnel/stunnel.conf \ 
