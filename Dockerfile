@@ -34,7 +34,7 @@ RUN ln -s `pwd`/apprtc/src/collider/collidermain $GOPATH/src \
 # Start the bash wrapper that keeps both collider and the AppRTC GAE app running. 
 CMD google-cloud-sdk/bin/dev_appserver.py --host lytrix.net apprtc/out/app_engine \
     --ssl_certificate_path /cert/cert.pem --ssl_certificate_key_path /cert/key.pem \ 
-    && $GOPATH/src/bin/collidermain -port=8089 -tls=true -room-server=http://localhost
+    && $GOPATH/src/bin/collidermain
 
 ## Instructions (Tested on Debian 11 only):
 # - Download the Dockerfile from the AppRTC repo and put it in a folder, e.g. 'apprtc'
