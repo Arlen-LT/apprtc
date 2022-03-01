@@ -3,8 +3,8 @@
 FROM golang:1.17.5-alpine3.15
 
 # Install and download deps.
-RUN apk add --no-cache git curl python2 build-base openssl-dev openssl 
-RUN git clone https://github.com/Arlen-LT/apprtc.git
+RUN apk add --no-cache git curl python2 build-base openssl-dev openssl \
+    && git clone https://github.com/Arlen-LT/apprtc.git
 
 # AppRTC GAE setup
 # Required to run GAE dev_appserver.py.
