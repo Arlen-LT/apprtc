@@ -4,9 +4,9 @@ FROM golang:1.17.5-alpine3.15
 
 # Install and download deps.
 RUN apk add --no-cache git curl python2 build-base openssl-dev openssl 
-RUN git clone https://github.com/Arlen-LT/apprtc.git
-# AppRTC GAE setup
+RUN git clone https://github.com/Arlen-LT/apprtc.git && echo `pwd`
 
+# AppRTC GAE setup
 # Required to run GAE dev_appserver.py.
 RUN curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-367.0.0-linux-x86_64.tar.gz --output gcloud.tar.gz \
     && tar -xf gcloud.tar.gz \
@@ -18,13 +18,6 @@ RUN python apprtc/build/build_app_engine_package.py apprtc/src/ apprtc/out/ \
     && curl https://webrtc.github.io/adapter/adapter-latest.js --output apprtc/src/web_app/js/adapter.js \
     && cp apprtc/src/web_app/js/*.js apprtc/out/js/
 
-# Wrap AppRTC GAE app in a bash script due to needing to run two apps within one container.
-# RUN echo -e "#!/bin/sh\n" > /go/start.sh \
-#     && echo -e "`pwd`/google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 `pwd`/apprtc/out/app.yaml --enable_host_checking=false &\n" >> /go/start.sh
-    
-RUN echo -e "#!/bin/sh\n" > /go/start.sh \
-    && echo -e "`pwd`/google-cloud-sdk/bin/dev_appserver.py --host lytrix.net `pwd`/apprtc/out/app_engine --ssl_certificate_path /cert/cert.pem --ssl_certificate_key_path /cert/key.pem &\n" >> /go/start.sh
-
 # Collider setup
 # Go environment setup.
 RUN export GOPATH=$HOME/goWorkspace/ \
@@ -35,32 +28,13 @@ RUN ln -s `pwd`/apprtc/src/collider/collidermain $GOPATH/src \
     && ln -s `pwd`/apprtc/src/collider/collider $GOPATH/src \
     && cd $GOPATH/src \
     && go get collidermain \
-    && go install collidermain
-
-# Add Collider executable to the start.sh bash script.
-RUN echo -e "$GOPATH/bin/collidermain -port=8089 -tls=true -room-server=http://localhost &\n" >> /go/start.sh
-
-ENV STUNNEL_VERSION 5.60
-
-WORKDIR /usr/src
-RUN curl  https://www.stunnel.org/archive/5.x/stunnel-${STUNNEL_VERSION}.tar.gz --output stunnel.tar.gz\
-    && tar -xf /usr/src/stunnel.tar.gz
-WORKDIR /usr/src/stunnel-${STUNNEL_VERSION}
-RUN ./configure --prefix=/usr && make && make install
-
-RUN echo -e "foreground=yes\n" > /usr/etc/stunnel/stunnel.conf \
-    && echo -e "[AppRTC GAE]\n" >> /usr/etc/stunnel/stunnel.conf \ 
-    && echo -e "accept=0.0.0.0:443\n" >> /usr/etc/stunnel/stunnel.conf \
-    && echo -e "connect=0.0.0.0:8080\n" >> /usr/etc/stunnel/stunnel.conf \
-    && echo -e "cert=/cert/cert.pem\n" >> /usr/etc/stunnel/stunnel.conf 
-
-RUN echo -e  "/usr/bin/stunnel &\n" >> /go/start.sh \
-    && echo -e "wait -n\n" >> /go/start.sh \
-    && echo -e "exit $?\n" >> /go/start.sh \
-    && chmod +x /go/start.sh
+    && go install collidermain \
+    && cd $HOME
 
 # Start the bash wrapper that keeps both collider and the AppRTC GAE app running. 
-CMD /go/start.sh
+CMD google-cloud-sdk/bin/dev_appserver.py --host lytrix.net apprtc/out/app_engine \
+    --ssl_certificate_path /cert/cert.pem --ssl_certificate_key_path /cert/key.pem \ 
+    && $GOPATH/src/bin/collidermain -port=8089 -tls=true -room-server=http://localhost
 
 ## Instructions (Tested on Debian 11 only):
 # - Download the Dockerfile from the AppRTC repo and put it in a folder, e.g. 'apprtc'
