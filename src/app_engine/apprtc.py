@@ -149,8 +149,8 @@ def get_wss_parameters(request):
     wss_url = 'ws://' + wss_host_port_pair + '/ws'
     wss_post_url = 'http://' + wss_host_port_pair
   else:
-    wss_url = 'wss://' + wss_host_port_pair + '/ws'
-    wss_post_url = 'https://' + wss_host_port_pair
+    wss_url = 'ws://' + wss_host_port_pair + '/ws'
+    wss_post_url = 'http://' + wss_host_port_pair
   return (wss_url, wss_post_url)
 
 def get_version_info():
