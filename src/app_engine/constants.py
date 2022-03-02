@@ -30,10 +30,15 @@ ICE_SERVER_OVERRIDE  = [
     ],
     "username": "test",
     "credential": "123456"
+  },
+  {
+    "urls": [
+      "stun:45.78.56.103:3478"
+    ]
   }
 ]
 
-ICE_SERVER_BASE_URL = 'https://appr.tc'
+ICE_SERVER_BASE_URL = 'https://45.78.56.103'
 ICE_SERVER_URL_TEMPLATE = '%s/v1alpha/iceconfig?key=%s'
 ICE_SERVER_API_KEY = os.environ.get('ICE_SERVER_API_KEY')
 HEADER_MESSAGE = os.environ.get('HEADER_MESSAGE')
@@ -44,11 +49,11 @@ WSS_INSTANCE_HOST_KEY = 'localhost:8089'
 WSS_INSTANCE_NAME_KEY = 'vm_name'
 WSS_INSTANCE_ZONE_KEY = 'zone'
 WSS_INSTANCES = [{
-    WSS_INSTANCE_HOST_KEY: 'apprtc-ws.webrtc.org:443',
+    WSS_INSTANCE_HOST_KEY: 'localhost:8089',
     WSS_INSTANCE_NAME_KEY: 'wsserver-std',
     WSS_INSTANCE_ZONE_KEY: 'us-central1-a'
 }, {
-    WSS_INSTANCE_HOST_KEY: 'apprtc-ws-2.webrtc.org:443',
+    WSS_INSTANCE_HOST_KEY: 'localhost:8089',
     WSS_INSTANCE_NAME_KEY: 'wsserver-std-2',
     WSS_INSTANCE_ZONE_KEY: 'us-central1-f'
 }]
