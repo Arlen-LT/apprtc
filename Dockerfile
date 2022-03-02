@@ -28,7 +28,8 @@ RUN ln -s `pwd`/apprtc/src/collider/collidermain $GOPATH/src \
     && go install collidermain
 
 # Start the bash wrapper that keeps both collider and the AppRTC GAE app running. 
-CMD google-cloud-sdk/bin/dev_appserver.py --host lytrix.net apprtc/out/app_engine \
+WORKDIR /go
+CMD google-cloud-sdk/bin/dev_appserver.py --host lytrix.net apprtc/out/app.yaml \
     --ssl_certificate_path /cert/cert.pem --ssl_certificate_key_path /cert/key.pem \ 
     && $GOPATH/src/bin/collidermain
 
