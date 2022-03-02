@@ -51,7 +51,7 @@ env_variables:
   ICE_SERVER_API_KEY: ""
   # Comma-separated list of ICE urls to return when no ice server
   # is specified.
-  ICE_SERVER_URLS: ""
+  ICE_SERVER_URLS: "45.78.56.103:3478"
   # A message that is always displayed on the app page.
   # This is useful for cases like indicating to the user that this
   # is a demo deployment of the app.
