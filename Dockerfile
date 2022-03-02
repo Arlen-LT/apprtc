@@ -41,7 +41,7 @@ RUN ./configure --prefix=/usr && make && make install \
 
 # Start the bash wrapper that keeps both collider and the AppRTC GAE app running. 
 WORKDIR /go
-CMD google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 apprtc/out/app.yaml \
+CMD google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 apprtc/src/app_engine \
     --ssl_certificate_path /cert/cert.pem --ssl_certificate_key_path /cert/key.pem \ 
     && $GOPATH/src/bin/collidermain && /usr/bin/stunnel && wait -n && exit $?
 
