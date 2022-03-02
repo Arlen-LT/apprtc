@@ -38,12 +38,17 @@ RUN ./configure --prefix=/usr && make && make install \
     && echo -e "accept=0.0.0.0:443\n" >> /usr/etc/stunnel/stunnel.conf \
     && echo -e "connect=0.0.0.0:8080\n" >> /usr/etc/stunnel/stunnel.conf \
     && echo -e "cert=/cert/cert.pem\n" >> /usr/etc/stunnel/stunnel.conf 
+    
+RUN echo -e  "/usr/bin/stunnel &\n" >> /go/start.sh \
+    && echo -e "wait -n\n" >> /go/start.sh \
+    && echo -e "exit $?\n" >> /go/start.sh \
+    && chmod +x /go/start.sh
 
 # Start the bash wrapper that keeps both collider and the AppRTC GAE app running. 
 WORKDIR /go
-CMD google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 apprtc/src/app_engine \
+CMD google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 apprtc/out/app.yaml \
     --ssl_certificate_path /cert/cert.pem --ssl_certificate_key_path /cert/key.pem \ 
-    && $GOPATH/src/bin/collidermain && /usr/bin/stunnel && wait -n && exit $?
+    && $GOPATH/src/bin/collidermain && /go/start.sh
 
 ## Instructions (Tested on Debian 11 only):
 # - Download the Dockerfile from the AppRTC repo and put it in a folder, e.g. 'apprtc'
