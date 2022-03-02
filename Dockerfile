@@ -27,22 +27,8 @@ RUN ln -s `pwd`/apprtc/src/collider/collidermain $GOPATH/src \
     && go get collidermain \
     && go install collidermain
     
-ENV STUNNEL_VERSION 5.60
-WORKDIR /usr/src
-RUN curl  https://www.stunnel.org/archive/5.x/stunnel-${STUNNEL_VERSION}.tar.gz --output stunnel.tar.gz\
-    && tar -xf /usr/src/stunnel.tar.gz
-WORKDIR /usr/src/stunnel-${STUNNEL_VERSION}
-RUN ./configure --prefix=/usr && make && make install \
-    && echo -e "foreground=yes\n" > /usr/etc/stunnel/stunnel.conf \
-    && echo -e "[AppRTC GAE]\n" >> /usr/etc/stunnel/stunnel.conf \ 
-    && echo -e "accept=0.0.0.0:443\n" >> /usr/etc/stunnel/stunnel.conf \
-    && echo -e "connect=0.0.0.0:8080\n" >> /usr/etc/stunnel/stunnel.conf \
-    && echo -e "cert=/cert/cert.pem\n" >> /usr/etc/stunnel/stunnel.conf \
-    && echo -e "key=/cert/key.pem\n" >> /usr/etc/stunnel/stunnel.conf
-    
 RUN echo -e  "/go/google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 /go/apprtc/out/app.yaml --enable_host_checking=false --ssl_certificate_path /cert/cert.pem --ssl_certificate_key_path /cert/key.pem &\n" >> /go/start.sh \ 
     && echo -e "$GOPATH/bin/collidermain -tls=false -port=8089 -room-server=http://localhost &\n" >> /go/start.sh \
-    && echo -e  "/usr/bin/stunnel &\n" >> /go/start.sh \
     && echo -e "wait -n\n" >> /go/start.sh \
     && echo -e "exit $?\n" >> /go/start.sh \
     && chmod +x /go/start.sh
@@ -51,6 +37,9 @@ RUN echo -e  "/go/google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 /go/apprt
 CMD /go/start.sh
 
 ## Instructions (Tested on Debian 11 only):
+# - docker build -t apprtc:latest .
+# - docker run --name apprtc_server -v /cert:/cert -p 443:8081 -p 8089:8089 -it apprtc
+
 # - Download the Dockerfile from the AppRTC repo and put it in a folder, e.g. 'apprtc'
 # - Build the Dockerfile into an image: 'sudo docker build apprtc/'
 #   Note the image ID from the build command, e.g. something like 'Successfully built 503621f4f7bd'.
