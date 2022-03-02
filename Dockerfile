@@ -26,12 +26,24 @@ RUN ln -s `pwd`/apprtc/src/collider/collidermain $GOPATH/src \
     && cd $GOPATH/src \
     && go get collidermain \
     && go install collidermain
+    
+ENV STUNNEL_VERSION 5.60
+WORKDIR /usr/src
+RUN curl  https://www.stunnel.org/archive/5.x/stunnel-${STUNNEL_VERSION}.tar.gz --output stunnel.tar.gz\
+    && tar -xf /usr/src/stunnel.tar.gz
+WORKDIR /usr/src/stunnel-${STUNNEL_VERSION}
+RUN ./configure --prefix=/usr && make && make install \
+    && echo -e "foreground=yes\n" > /usr/etc/stunnel/stunnel.conf \
+    && echo -e "[AppRTC GAE]\n" >> /usr/etc/stunnel/stunnel.conf \ 
+    && echo -e "accept=0.0.0.0:443\n" >> /usr/etc/stunnel/stunnel.conf \
+    && echo -e "connect=0.0.0.0:8080\n" >> /usr/etc/stunnel/stunnel.conf \
+    && echo -e "cert=/cert/cert.pem\n" >> /usr/etc/stunnel/stunnel.conf 
 
 # Start the bash wrapper that keeps both collider and the AppRTC GAE app running. 
 WORKDIR /go
 CMD google-cloud-sdk/bin/dev_appserver.py --host lytrix.net apprtc/out/app.yaml \
     --ssl_certificate_path /cert/cert.pem --ssl_certificate_key_path /cert/key.pem \ 
-    && $GOPATH/src/bin/collidermain
+    && $GOPATH/src/bin/collidermain && /usr/bin/stunnel && wait -n && exit $?
 
 ## Instructions (Tested on Debian 11 only):
 # - Download the Dockerfile from the AppRTC repo and put it in a folder, e.g. 'apprtc'
