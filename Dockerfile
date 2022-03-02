@@ -41,7 +41,7 @@ RUN ./configure --prefix=/usr && make && make install \
     && echo -e "key=/cert/key.pem\n" >> /usr/etc/stunnel/stunnel.conf
     
 RUN echo -e  "/go/google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 /go/apprtc/out/app.yaml --enable_host_checking=false --ssl_certificate_path /cert/cert.pem --ssl_certificate_key_path /cert/key.pem &\n" >> /go/start.sh \ 
-    && echo -e "/go/src/collidermain -tls=false -port=8089 -room-server=http://localhost &\n" >> /go/start.sh \
+    && echo -e "$GOPATH/bin/collidermain -tls=false -port=8089 -room-server=http://localhost &\n" >> /go/start.sh \
     && echo -e  "/usr/bin/stunnel &\n" >> /go/start.sh \
     && echo -e "wait -n\n" >> /go/start.sh \
     && echo -e "exit $?\n" >> /go/start.sh \
